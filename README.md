@@ -14,6 +14,35 @@ The idea in one line: *AI does the bulk pass; humans check only the rows the AI 
 
 ---
 
+## How the flow works (AI + human)
+
+```mermaid
+flowchart LR
+    A["Hotel complaint (negative text)"] --> B["AI reads it TWICE<br/>(2 independent calls, same prompt)"]
+    B --> C{"Rules decide:<br/>agree? long enough? no error?"}
+    C -->|"yes"| D["ok — nobody needed"]
+    C -->|"no — disagreement / short / error"| E["needs_review queue"]
+    C -.->|"row never sent to AI"| F["unlabeled"]
+    E --> G["HUMAN reads the complaint"]
+    G --> H["saves gold = the correct theme"]
+    H --> I["metrics: does AI agree with the human?"]
+    B2["Same 200 rows, prompt v2"] -.-> J["A/B compare: v1 vs v2"]
+    I --> K["pick the better prompt"]
+```
+
+**The two "twos" — don't mix them up:**
+
+| | What it is | Why |
+|---|---|---|
+| **2 AI calls per row** (label_a, label_b) | Every labeled complaint is read **twice**, independently, with the *same* prompt | AI is not 100% reliable. Two readings that **disagree** are the cheapest signal that a row needs a human. If both pick the same theme and the text is long enough → `ok`, no human needed. If they disagree (or the text is tiny / a call errored) → `needs_review`. |
+| **2 prompt versions** (v1 vs v2 = A/B) | The *same* 200 rows are also run with **two different instruction wordings** (`run_ab.py`) | An experiment *about the AI*: is prompt v1 ("Pick ONE theme…") better than v2 ("You are an expert hotel analyst…")? `/metrics` compares cost, speed (p50), and agreement between the two prompts — and once ≥30 golds exist, which one agrees with the **human** more. You keep the better prompt; no extra human review needed. |
+
+**The human's job is tiny on purpose.** AI reads everything (200 rows × 2), the rules queue only what looks uncertain, and the human reviews *that* subset — reading a complaint, saving the correct theme as **gold**. Gold never overwrites the AI labels; it sits beside them as the human truth, so the tool can measure "how often does the AI agree with the human?" (shown in Metrics once ≥30 golds are saved).
+
+**Why two calls instead of one?** One AI call gives you its best guess with no way to know if it's reliable. Two calls turn reliability into a *measurable* signal: agreement = trust it; disagreement = spend one human minute on it. That is the whole trick that makes 50,000 complaints reviewable by one person.
+
+---
+
 ## What it is built from (technical)
 
 OpenEval2 — hotel reviews → SQLite → dual-LLM label of a 200-row sample →

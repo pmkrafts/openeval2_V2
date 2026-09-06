@@ -307,3 +307,18 @@ behavioral requirements stay authoritative in them.
   existing technical summary moved under "What it is built from (technical)".
 - DOCS/OpenEval2-RUN.md opens with a short plain-language blurb before the steps.
 - Full walkthrough stays in DOCS/OpenEval2-EXPLAINER.md.
+
+
+## 2026-09-06 — Step 15 · README: human+AI flow and the two "twos"
+
+**docs(readme): explain 2 AI calls vs 2 prompt versions + human flow**
+- User asked why two AI prompt versions and how the human/AI flow works.
+- README gained "How the flow works (AI + human)": mermaid pipeline
+  (AI reads twice -> rules -> ok / needs_review / unlabeled -> human review +
+  gold -> metrics -> pick better prompt) plus a table separating:
+  * 2 AI calls per row (label_a/b, same prompt) = reliability signal; disagreement
+    queues the row for a human;
+  * 2 prompt versions (v1 vs v2 = prompt A/B) = an experiment about prompt
+    quality; /metrics compares cost/p50/agreement and (>=30 golds) agreement
+    with the human.
+- Explains why the human's job stays tiny and why two calls beat one.
