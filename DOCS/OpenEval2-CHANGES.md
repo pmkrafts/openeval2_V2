@@ -207,3 +207,14 @@ behavioral requirements stay authoritative in them.
 ---
 
 
+## 2026-09-06 — Step 8 · Relocation into the workspace root
+
+**chore(repo): move the project from `../OpenEval2` into `Prjct2_V2`**
+- User direction: the project belongs in `E:/Projects/ToluNaProjects/Prjct2_V2`
+  (this workspace), not the sibling folder created in Step 6.
+- Decision: relocate the entire repo (`.git`, code, DOCS, data/) to the `Prjct2_V2`
+  root; `Dataset/Hotel_Reviews.csv` already lives there and stays gitignored.
+- Removed the path-bound `.venv` + caches before the move; recreated
+  `.venv` in the new root and reinstalled requirements (streamlit 1.63.0).
+- Services stopped, restarted from the new path (api :8000, ui :8501).
+- Doc/decision log is now single-copy at `Prjct2_V2/DOCS/OpenEval2-CHANGES.md`.
