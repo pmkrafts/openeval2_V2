@@ -61,6 +61,16 @@ PROMPTS = {
 }
 
 
+def build_prompt(prompt_version: str, text: str) -> str:
+    """Fill the {text} placeholder WITHOUT str.format.
+
+    The templates' JSON example braces are single literal braces (the f-string
+    pieces already collapsed {{ -> { at definition time), so str.format would
+    treat them as fields and raise KeyError: '"label"'. Use replace instead.
+    """
+    return PROMPTS[prompt_version].replace("{text}", text)
+
+
 def load_dotenv(path: str | Path | None = None) -> None:
     """Load KEY=VALUE lines from a .env file into the environment."""
     path = Path(path) if path else Path(__file__).resolve().parent.parent / ".env"
@@ -130,7 +140,7 @@ class LLMLabeler:
             "model": LLM_MODEL,
             "messages": [
                 {"role": "system", "content": "You classify hotel complaints."},
-                {"role": "user", "content": PROMPTS[self.prompt_version].format(text=text)},
+                {"role": "user", "content": build_prompt(self.prompt_version, text)},
             ],
             "temperature": 0,
             "response_format": {"type": "json_object"},

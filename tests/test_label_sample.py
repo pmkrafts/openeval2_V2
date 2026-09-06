@@ -39,6 +39,23 @@ def test_mock_rerun_with_force_is_deterministic(db_path, monkeypatch):
     assert len(first) == 200
 
 
+def test_prompt_templates_interpolate_without_format_crash():
+    """Regression: templates contain literal JSON braces that broke str.format
+    (KeyError: '"label"') — build_prompt must never use .format."""
+    from scripts.label_sample import PROMPTS, build_prompt
+    for version in ("v1", "v2"):
+        prompt = build_prompt(version, "The bed was broken")
+        assert "{text}" not in prompt
+        assert "The bed was broken" in prompt
+        assert '"label"' in prompt            # JSON instruction survives
+        assert "{label" not in prompt         # no unescaped placeholder left
+        # and .format would still choke — prove build_prompt avoids it
+        try:
+            PROMPTS[version].format(text="x")
+        except KeyError as exc:
+            assert '"label"' in str(exc)
+
+
 def test_short_texts_can_be_labeled_but_stay_needs_review(db_path, insert_label,
                                                           api_client):
     """Labeling a short row never flips it to ok (S3)."""

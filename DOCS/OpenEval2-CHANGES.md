@@ -258,3 +258,25 @@ behavioral requirements stay authoritative in them.
   - `[!WARNING]` §6 — secrets only in .env; .env.example is tracked/public.
   - `[!CAUTION]` §6 — placeholder aborts; 401s flag rows needs_review (Flow 6).
 - Extended port troubleshooting row with WinError 10013 + netstat / excluded-range checks.
+
+
+## 2026-09-06 — Step 12 · Fix: LLM prompt template KeyError
+
+**fix(labeling): every real-LLM call failed with KeyError: '"label"'**
+- Symptom (user run): `label_sample --provider llm` -> errors=200, first error
+  `'"label"'`; `run_ab --provider llm` crashed at `PROMPTS[prompt_version].format(...)`.
+- Root cause: the templates' JSON example braces live in f-string pieces, so
+  `{{` collapsed to `{` at definition time; `str.format()` then parsed the
+  remaining single braces as fields and looked up a key literally named
+  `"label"` (with quotes) -> uniform KeyError, one per call.
+- Fix: new `build_prompt(prompt_version, text)` uses `.replace("{text}", text)`
+  (no format parsing); used by both `LLMLabeler.label` and `run_ab`.
+- Regression test added (`test_prompt_templates_interpolate_without_format_crash`),
+  suite 39 passed.
+- Verified end-to-end with a local OpenAI-shaped stub server (zero cost):
+  prompt payload contains the JSON instruction, `label_sample` stored
+  ('Room','Room', agree=1, errors=0), `run_ab` recorded real cost ($1.1e-05)
+  and p50 ms for both prompt versions.
+- Note: the earlier broken run left 200 rows flagged (labels null, llm_error=1);
+  re-running `label_sample --provider llm --force` overwrites them with real
+  labels, or `--provider mock --force` restores the free demo state.

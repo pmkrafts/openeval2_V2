@@ -29,7 +29,8 @@ import httpx
 
 import config
 import db as db_module
-from scripts.label_sample import PROMPTS, MockLabeler, LLMLabeler, load_dotenv, LLM_MODEL
+from scripts.label_sample import (MockLabeler, LLMLabeler,
+                                  build_prompt, load_dotenv, LLM_MODEL)
 
 load_dotenv()
 
@@ -87,7 +88,7 @@ def _run_version(db_path, prompt_version: str, ids: list[int], provider: str) ->
         payloads = {
             i: {"model": LLM_MODEL, "messages": [
                 {"role": "system", "content": "You classify hotel complaints."},
-                {"role": "user", "content": PROMPTS[prompt_version].format(text=texts[i])},
+                {"role": "user", "content": build_prompt(prompt_version, texts[i])},
             ], "temperature": 0, "response_format": {"type": "json_object"}}
             for i in ids
         }
