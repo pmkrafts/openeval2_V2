@@ -294,3 +294,16 @@ behavioral requirements stay authoritative in them.
   - ../Prjct2/DOCS/openend-eval-KAGGLE-SPEC.docx (binary zip XML rewrite,
     "Toluna" -> "survey")
 - Verified: word-boundary grep across all md/py/txt/toml/.env + docx -> 0 hits.
+
+
+## 2026-09-06 — Step 14 · Plain-language explanation at the top of entry files
+
+**docs(readme/run): simple-language project explanation at the very start**
+- User direction: explain the project in simple language and write it at the top
+  of the README (and anywhere else a reader lands).
+- README.md now opens with "What is this? (plain language)": complaints →
+  two AI taggers → human checks disagreements → gold + prompt A/B; the
+  515k → 50k → 200 → human-review numbers; pointers to EXPLAINER/RUN. The
+  existing technical summary moved under "What it is built from (technical)".
+- DOCS/OpenEval2-RUN.md opens with a short plain-language blurb before the steps.
+- Full walkthrough stays in DOCS/OpenEval2-EXPLAINER.md.

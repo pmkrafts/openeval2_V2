@@ -1,5 +1,21 @@
 # openeval2_V2
 
+## What is this? (plain language)
+
+**People write complaints about hotels online. Nobody can read them all — so this project shows the standard trick: let two AI assistants read each complaint and pick a theme (Room, Staff, Food, Price, …), then queue only the rows the AIs disagree on — or that look wrong — for a human to check. A human can save the correct answer ("gold"), and the tool can compare two AI prompt versions to see which one tags better.**
+
+This is the same loop used in survey research for open-ended answers ("what could we improve?") — except the text here is **public hotel reviews**, so no private or work data is involved.
+
+The idea in one line: *AI does the bulk pass; humans check only the rows the AI is unsure about.*
+
+- The numbers: 515k public reviews exist → 50,000 are stored → 200 are AI-labeled → humans review the disagreements.
+- The demo story: "515k public source → 50k stored sample → ≤200 LLM-coded complaints → humans review the disagreements."
+- Plain-language walkthrough: `DOCS/OpenEval2-EXPLAINER.md` · how to run: `DOCS/OpenEval2-RUN.md`
+
+---
+
+## What it is built from (technical)
+
 OpenEval2 — hotel reviews → SQLite → dual-LLM label of a 200-row sample →
 human-review queue (`needs_review`) → FastAPI REST → Streamlit dashboard.
 

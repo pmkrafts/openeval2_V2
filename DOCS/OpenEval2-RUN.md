@@ -1,5 +1,15 @@
 # OpenEval2 — How to run (runbook)
 
+## What is this? (plain language)
+
+A website that reads hotel complaints, sorts them into themes with **two AI
+assistants** (Room, Staff, Food, Price, …), and asks a **human to check only the
+rows the AIs disagree on** or that look wrong. The human can save the correct
+answer ("gold") and compare two AI prompt versions. Public hotel reviews only —
+no private or work data. Same loop as survey open-ends at work.
+
+Full story: `README.md` (top) and `OpenEval2-EXPLAINER.md` in this folder.
+
 Everything needed to go from a clean machine to the live dashboard, plus what
 "working" looks like at each step. Windows commands (this machine is Windows 11,
 Python 3.13); POSIX = swap `python`/`.venv\Scripts\` for `python3`/`.venv/bin/`.
