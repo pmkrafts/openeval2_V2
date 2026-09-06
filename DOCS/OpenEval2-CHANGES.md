@@ -322,3 +322,20 @@ behavioral requirements stay authoritative in them.
     quality; /metrics compares cost/p50/agreement and (>=30 golds) agreement
     with the human.
 - Explains why the human's job stays tiny and why two calls beat one.
+
+
+## 2026-09-06 — Step 16 · Tech-stack doc reflects what was used
+
+**docs(tech-stack): rewrite as an implemented-and-verified record**
+- User: update the tech stack file for what has been used (it was written
+  pre-build as a plan).
+- New "0. Implementation status (verified 2026-09-06)" table with installed
+  versions: Python 3.13.13, fastapi 0.141.1, uvicorn 0.52.4, pandas 3.0.5,
+  httpx 0.28.1, streamlit 1.63.0, pytest 9.1.1, sqlite3 stdlib; Node confirmed
+  unneeded. 39 tests pass.
+- Removed the stale "code does not exist yet / pin when written" framing;
+  "Suggested dependency lists (to be written when code starts)" is now
+  "Dependency manifests (implemented)".
+- Documented the deliberate deviations (rating REAL + rating_min/max params,
+  gold-only rows not labeled, build_prompt vs str.format bug, mock A/B agree=1.0)
+  and marked CI AppTest as planned-not-yet-added.

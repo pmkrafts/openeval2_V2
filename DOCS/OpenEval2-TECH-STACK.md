@@ -1,14 +1,37 @@
-# OpenEval2 — Tech stack & required libraries
+# OpenEval2 — Tech stack & used libraries
 
-What the system runs on. Two columns of truth per row:
-**Required** = forced by the docs (SPEC/FLOWS) or by the data itself.
-**Choice** = open in the docs; the recommended default listed here is the boring option that satisfies the requirement.
+What the system actually runs on. **Everything below is implemented and verified
+in this repo** (working tree at `Prjct2_V2`, github.com/pmkrafts/openeval2_V2) as
+of 2026-09-06 — not a shopping list.
 
-Code does not exist in the repo yet (only `DOCS/` + the raw CSV), so nothing below is pinned to an existing implementation. Pin exact versions in the first `requirements.txt`.
+## 0. Implementation status (verified 2026-09-06)
 
-Provenance: `DOCS/design.md` is byte-identical to the design doc the v1 app (Prjct1/Prjct2) styled its dashboard from. The **backend** inherits the working v1 stack (Python ≥ 3.11, fastapi/uvicorn/pandas/httpx/pytest). The **UI is a deliberate new choice — Streamlit (≥1.57) instead of v1's React** (user direction, 2026-09-06); widget/theme claims below were checked against Streamlit 1.63's bundled reference docs (theme, data-display, layouts, dashboards, performance).
+| Component | Used version | State |
+|---|---|---|
+| Python | 3.13.13 (venv `.venv`) | running; floor stays ≥ 3.11 |
+| fastapi + uvicorn | 0.141.1 · 0.52.4 | API on :8000 — all endpoints live |
+| pandas | 3.0.5 | ingest 50k sample (seed 42) → 37,496 complaints |
+| httpx | 0.28.1 | LLM calls + Streamlit's server-side API client |
+| streamlit | 1.63.0 | dashboard on :8501 — theme per design.md |
+| pytest | 9.1.1 | **39 tests pass**, offline, ~1 s, no key |
+| sqlite3 (stdlib) | — | `data/openeval2.sqlite3` — reviews/labels/ab_runs/ab_labels |
+| Node / npm | none | confirmed unnecessary — whole stack is Python |
 
-Repo: github.com/pmkrafts/openeval2
+Deliberate deviations from the original plan, all logged in
+`OpenEval2-CHANGES.md`:
+- rating stored **REAL** (Booking scores are decimals like 9.6); `/rows` gained
+  additive `rating_min` / `rating_max` band params (UI uses them);
+- gold-only labels rows never count as "labeled" (status stays `unlabeled`);
+- prompt templates interpolate via `build_prompt()` (`.replace`) — the
+  `str.format` variant raised `KeyError: '"label"'` on every LLM call (Step 12);
+- mock A/B agreement is 1.0 by design; real variation comes from `--provider llm`.
+
+Provenance: `DOCS/design.md` is byte-identical to the design doc the v1 app
+(Prjct1/Prjct2) styled its dashboard from. The backend inherits the working v1
+stack; the UI is a deliberate new choice — **Streamlit (≥1.57) instead of v1's
+React** (user direction, 2026-09-06). Widget/theme claims were checked against
+Streamlit 1.63's bundled reference docs (theme, data-display, layouts,
+dashboards, performance).
 
 ---
 
@@ -23,8 +46,8 @@ Repo: github.com/pmkrafts/openeval2
 | Backend API | **FastAPI** | `/health /stats /rows /export.csv /metrics /hotels`, `POST /rows/{id}/gold` |
 | UI app | **Streamlit (Python, ≥1.57)** — not React | replaces the v1 React dashboard (user decision); `st.dataframe` virtualized grid + sidebar filters; design.md tokens via `.streamlit/config.toml` theme; smooth on 50k rows |
 | LLM labelers | Two independent model calls per row | Mock labeler is the default path (CI needs no key) |
-| Tests | pytest | Green with no API key |
-| Runtime floors | Python ≥ 3.11 only — API and Streamlit UI are both Python; **no Node/npm** | backend floor proven by v1 (Prjct2); UI is a new Streamlit choice |
+| Tests | pytest | **39 passed**, offline, no key (2026-09-06) |
+| Runtime floors | Python ≥ 3.11 only — API and Streamlit UI are both Python; **no Node/npm** | verified on Python 3.13.13; v1-proven backend + new Streamlit choice |
 | Public demo | Hosted URL, synthetic hotel-shaped CSV | No Kaggle file, no key required to view |
 
 ---
@@ -201,7 +224,7 @@ writing app code (checked against 1.63 for this doc):
 | README requirements | Hard | README names Kaggle dataset, caps, 10-pt scale, "not employer data" (TS50–51) |
 | Public demo | Hard | Host serves **synthetic hotel-shaped CSV** only; no Kaggle file; no key to view (TS52, P1) |
 | No Vodafone brand assets shipped | Hard | design.md tokens only — no speechmark orb, wordmark, or Vodafone photography; fonts = Inter substitute (design.md font note, U17). No `ui/dist` exists anymore (no build step) — audit the Streamlit app + static files before deploy |
-| CI | Recommended | GitHub Actions: `pip install -r requirements.txt && pytest` (API tests TS20–27) + a Streamlit AppTest smoke for the dashboard — green with mock labeler (TS44) |
+| CI | Planned (not yet added) | GitHub Actions: `pip install -r requirements.txt && pytest` (39 tests) + optional Streamlit AppTest smoke — green with mock labeler (TS44) |
 
 Deployment shape: one small VPS or free-tier host running two Python processes —
 `uvicorn api.app:app` (FastAPI on :8000) and `streamlit run app.py` (UI on :8501,
@@ -210,7 +233,7 @@ database server to provision.
 
 ---
 
-## 6. Suggested dependency lists (to be written when code starts)
+## 6. Dependency manifests (implemented — this is what `requirements.txt` pins)
 
 ### `requirements.txt`
 Python floor: **3.11+** (v1-proven). One file for API + Streamlit app + scripts — the whole stack is Python.
