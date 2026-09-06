@@ -7,7 +7,7 @@ An end-to-end data demo built for interviews: 515k public hotel reviews,
 a warehouse-shaped 50k store, a deliberately capped LLM spend (200 rows × 2
 calls), an automated disagreement / short-text / rating-clash review queue,
 optional human **gold** labels and **prompt A/B** (v2), and a dashboard styled
-to a brand design system. **No Spark, no Snowflake, no Toluna/survey data, no
+to a brand design system. **No Spark, no Snowflake, no survey data, no
 employer data** — SQLite is enough by design.
 
 ---

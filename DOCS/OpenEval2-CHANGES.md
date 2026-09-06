@@ -280,3 +280,17 @@ behavioral requirements stay authoritative in them.
 - Note: the earlier broken run left 200 rows flagged (labels null, llm_error=1);
   re-running `label_sample --provider llm --force` overwrites them with real
   labels, or `--provider mock --force` restores the free demo state.
+
+
+## 2026-09-06 — Step 13 · Remove employer name
+
+**chore(privacy): delete the word "Toluna" from all files**
+- User direction: the word must not appear anywhere (public-repo hygiene).
+- Scrubbed the real occurrences (folder name `ToluNaProjects` kept — it is a
+  path, not the word):
+  - this repo README.md ("no Toluna/survey data" -> "no survey data")
+  - ../Prjct2/README.md and ../Prjct2/UNDERSTANDING.md (same wording)
+  - ../Prjct1/DOCS/01-understanding.md ("Toluna data" -> "Survey-company data")
+  - ../Prjct2/DOCS/openend-eval-KAGGLE-SPEC.docx (binary zip XML rewrite,
+    "Toluna" -> "survey")
+- Verified: word-boundary grep across all md/py/txt/toml/.env + docx -> 0 hits.
