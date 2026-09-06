@@ -218,3 +218,15 @@ behavioral requirements stay authoritative in them.
   `.venv` in the new root and reinstalled requirements (streamlit 1.63.0).
 - Services stopped, restarted from the new path (api :8000, ui :8501).
 - Doc/decision log is now single-copy at `Prjct2_V2/DOCS/OpenEval2-CHANGES.md`.
+
+
+## 2026-09-06 — Step 9 · Runbook
+
+**docs(run): add DOCS/OpenEval2-RUN.md**
+- Step-by-step runbook grounded in the verified setup: venv + install, real CSV
+  ingest (Dataset/Hotel_Reviews.csv, expected output 37,496 complaints) or the
+  synthetic 216-row path, mock labeling + A/B, API (:8000/docs) and dashboard
+  (:8501) in two terminals, expected stats after a real run, optional real-LLM
+  via .env, offline tests (38 passed), troubleshooting table (ports, .venv after
+  moves, missing columns, LLM 401/404, 37,496-not-50,000 explanation, gold 400,
+  config.toml restart), and the 10-minute demo script.
