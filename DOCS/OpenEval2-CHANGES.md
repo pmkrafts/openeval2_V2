@@ -245,3 +245,16 @@ behavioral requirements stay authoritative in them.
 - Usage answer recorded: the key is consumed only by `scripts/label_sample.py`
   (`LLMLabeler`, Authorization: Bearer) and `scripts/run_ab.py` (same class), both
   loaded from `.env` via `load_dotenv()`. Ingest/API/dashboard/tests/mock never use it.
+
+
+## 2026-09-06 — Step 11 · Runbook highlights
+
+**docs(run): color-highlight decision points in OpenEval2-RUN.md**
+- User: the LLM/mock-cost part of the runbook wasn't clearly flagged.
+- Added GitHub-flavored alert callouts (colored panels on github.com + VS Code):
+  - `[!TIP]` §4 — mock = no AI, no cost ($0.0 is correct); §6 — cost guards.
+  - `[!NOTE]` §4 — re-run labels nothing without --force; §6 — where the key is used.
+  - `[!IMPORTANT]` §6 — --force required/overwrites mock labels.
+  - `[!WARNING]` §6 — secrets only in .env; .env.example is tracked/public.
+  - `[!CAUTION]` §6 — placeholder aborts; 401s flag rows needs_review (Flow 6).
+- Extended port troubleshooting row with WinError 10013 + netstat / excluded-range checks.

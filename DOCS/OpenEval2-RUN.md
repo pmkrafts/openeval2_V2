@@ -7,6 +7,9 @@ Python 3.13); POSIX = swap `python`/`.venv\Scripts\` for `python3`/`.venv/bin/`.
 Repo: github.com/pmkrafts/openeval2_V2 — Docs: see `OpenEval2-HOTEL-SPEC.md`
 (what it is), `OpenEval2-REQUIREMENTS-FLOW.md` (rules), `README.md` (overview).
 
+> The colored boxes below are GitHub-flavored **alerts** — they render as colored
+> panels on github.com and in VS Code's Markdown preview.
+
 ---
 
 ## 1. Prerequisites
@@ -64,6 +67,13 @@ downstream behaves identically — use this for a quick demo or CI-style checks.
 
 ## 4. Label the sample (mock is the default — no key, no cost)
 
+> [!TIP]
+> **Mock = no AI, no cost.** The `mock` provider is a deterministic keyword
+> classifier running inside your Python process — **zero model calls**, so
+> `cost=$0.0` in the output is correct, not a bug. Real model calls happen only
+> with `--provider llm` (Step 6), where cost and p50 latency come from actual API
+> usage.
+
 ```powershell
 python scripts\label_sample.py --count 200 --seed 42 --provider mock
 python scripts\run_ab.py --count 200 --seed 7 --provider mock   # v2 prompt A/B
@@ -73,8 +83,12 @@ Expected (mock):
 `sample=200 labeled=200 provider=mock errors=0`
 then two A/B run records with `cost=$0.0`.
 
-Deterministic: same seed ⇒ identical label pairs. Sampling only touches rows
-that are not labeled yet — re-running after a full 200 adds nothing.
+> [!NOTE]
+> Once 200 rows are labeled, a plain re-run labels **nothing new** (only
+> unlabeled rows are sampled). Use `--force` to overwrite — and in mock mode
+> nothing is ever sent over the network, key or no key.
+
+Deterministic: same seed ⇒ identical label pairs.
 
 ## 5. Start the API and the dashboard (two terminals)
 
@@ -117,28 +131,65 @@ so no CORS setup is needed. If the API is not on `:8000`, set
 - Metrics view (radio at top): gold count and `Agree with gold` (shows "—" until
   30 golds are saved), then the prompt A/B runs with their agreement.
 
-## 6. Real-LLM labeling (optional, costs ~$0.01 per 200-row sample)
+## 6. Real-LLM labeling — how to actually call the model (≈ $0.01 / sample)
 
-Create `.env` in the repo root (gitignored):
+> [!WARNING]
+> Secrets live in **`.env` only** — it is gitignored. `.env.example` is
+> **tracked and pushed to the public repo**; never put a real key in it. If a key
+> ever lands in a committed file, revoke it immediately at
+> platform.openai.com/api-keys — treat it as public.
+
+Step 1 — create `.env` in the repo root (copy from `.env.example`):
 
 ```
-OPENEND_LLM_KEY=PASTE_YOUR_KEY_HERE
+OPENEND_LLM_KEY=sk-...your-new-key...
 # OPENEND_LLM_BASE_URL=https://api.openai.com/v1   # any OpenAI-compatible endpoint
 # OPENEND_LLM_MODEL=gpt-4o-mini
 ```
 
-Then, from a shell with that env (or after editing `.env`):
+Step 2 — dual-label the 200-row sample with the real model
+(2 independent calls per review = **400 calls**):
 
 ```powershell
 python scripts\label_sample.py --seed 42 --provider llm --force
+```
+
+> [!IMPORTANT]
+> `--force` is required once mock labels exist — without it the sampler finds
+> zero unlabeled rows and does nothing. `--force` **overwrites the 200 mock
+> labels**; a `--replace` re-ingest restores the clean demo state if you want it
+> back.
+
+Step 3 — prompt A/B on the same ids (400 more calls, real cost + p50 recorded):
+
+```powershell
 python scripts\run_ab.py --count 200 --seed 7 --provider llm
 ```
 
-- Missing key or the literal `PASTE_YOUR_KEY_HERE` aborts before any HTTP call.
-- 200 reviews × 2 calls = 400 calls; the run never dies mid-sample — failures
-  are recorded and those rows surface as `needs_review` (that is the designed
-  behavior, not a bug).
-- A/B with `llm` records real per-run cost + p50 latency in `/metrics`.
+Expected output (real values, not 0.0):
+
+```
+sample=200 labeled=200 provider=llm errors=0
+run 9 [v1] n=200 cost=$0.0031 ...
+run 10 [v2] n=200 cost=$0.0032 ...
+```
+
+> [!NOTE]
+> Where the key is used: only `scripts/label_sample.py` (`LLMLabeler`) and
+> `scripts/run_ab.py`, as the `Authorization: Bearer` header on each
+> `/chat/completions` POST. Ingest, the API server, the dashboard, mock mode,
+> and tests never touch it.
+
+> [!CAUTION]
+> A missing key or the literal `PASTE_YOUR_KEY_HERE` **aborts before any HTTP
+> call**. A wrong/revoked key (401) does not crash the run — the error is recorded
+> and those rows surface as `needs_review` (designed behavior, see Flow 6).
+
+> [!TIP]
+> Cost guards: 200-row cap (`config.SAMPLE_SIZE`), never more than 300 paid rows,
+> `mock` stays the default. At `gpt-4o-mini` pricing the whole sample is ≈ $0.01;
+> `/metrics` then shows the v1-vs-v2 comparison with real agreement (no longer
+> 1.0), cost, and p50 latency.
 
 ## 7. Tests (offline, no dataset, no key)
 
@@ -157,7 +208,7 @@ the mock labeler; API endpoints are exercised through FastAPI's TestClient.
 |---|---|
 | `'python' is not recognized` | Python not on PATH — use the full path to `python.exe` or reinstall with "Add to PATH". |
 | `.venv\Scripts\activate` errors / `ModuleNotFoundError` after moving the folder | Venvs are path-bound — delete `.venv`, re-create, `pip install -r requirements.txt`. |
-| Port already in use: `[Errno 10048]` / `Address already in use` on 8000 or 8501 | Something else owns the port. Run with a different port (`--port 9000`, `streamlit run app.py --server.port 8600`) or stop the other process. |
+| `[Errno 10048]` / `[WinError 10013]` — address already in use / access forbidden on 8000 or 8501 | The port is already held by another instance. Windows reports **10013** when a second process binds an occupied socket. Check `netstat -ano \| findstr ":8000"`, stop the other process, or run on another port (`--port 9000`, `streamlit run app.py --server.port 8600` + `$env:OPENEND_API_URL`). If the port is genuinely free, see `netsh interface ipv4 show excludedportrange protocol=tcp` (Hyper-V reserved ranges). |
 | Dashboard shows "API unreachable: cannot reach API at http://127.0.0.1:8000" | The API process is not running or is on another port — start it (Step 5) or set `OPENEND_API_URL`. Hit **Retry**. The dashboard never shows a blank crash. |
 | `Error: CSV missing required columns: [...]` | Wrong CSV. Hotel dataset needs `Hotel_Name, Reviewer_Nationality, Reviewer_Score, Positive_Review, Negative_Review, Review_Date`. |
 | `OPENEND_LLM_KEY missing or still the placeholder` | Copy `.env.example` → `.env` and put a real key in before `--provider llm`. |
