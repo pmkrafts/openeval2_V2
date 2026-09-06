@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pandas
+httpx
+streamlit>=1.57
+pytest

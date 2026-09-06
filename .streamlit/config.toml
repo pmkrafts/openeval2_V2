@@ -1,0 +1,15 @@
+# OpenEval2 review queue — design.md tokens via the Streamlit theme.
+# Token map: DOCS/OpenEval2-TECH-STACK.md §4.5 and DOCS/design.md.
+[theme]
+base = "light"
+primaryColor = "#e60000"                 # colors.primary — Vodafone-red accent (CTAs)
+backgroundColor = "#ffffff"              # colors.canvas
+secondaryBackgroundColor = "#f2f2f2"     # colors.canvas-soft (widgets, chips, data headers)
+textColor = "#25282b"                    # colors.ink
+linkColor = "#e60000"
+borderColor = "#d9d9d9"                  # hairline (design.md Level-1 border, softened)
+redColor = "#e60000"                     # semantic: needs_review marker (validation signal)
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+baseRadius = "6px"                       # rounded.card / rounded.sm (6px)
+buttonRadius = "full"                    # pill CTAs (design.md 60px pill intent)
+showWidgetBorder = true                  # hairline outlines, flat elevation (no shadows)
