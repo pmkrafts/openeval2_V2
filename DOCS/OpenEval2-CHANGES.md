@@ -230,3 +230,18 @@ behavioral requirements stay authoritative in them.
   via .env, offline tests (38 passed), troubleshooting table (ports, .venv after
   moves, missing columns, LLM 401/404, 37,496-not-50,000 explanation, gold 400,
   config.toml restart), and the 10-minute demo script.
+
+
+## 2026-09-06 — Step 10 · API-key hygiene
+
+**security(chore): real OpenAI key was pasted into `.env.example` (git-tracked)**
+- Detected when verifying where the key is consumed. Moved the real values into
+  `.env` (gitignored — `git check-ignore` confirmed) and restored `.env.example`
+  to the placeholder template.
+- Verified: zero `sk-proj` occurrences in committed history (`git log -p --all`),
+  working tree clean — the secret was never pushed.
+- Action required from user: **rotate the key** anyway (it appeared in this
+  session's tool output); new key goes into `.env` only.
+- Usage answer recorded: the key is consumed only by `scripts/label_sample.py`
+  (`LLMLabeler`, Authorization: Bearer) and `scripts/run_ab.py` (same class), both
+  loaded from `.env` via `load_dotenv()`. Ingest/API/dashboard/tests/mock never use it.
